@@ -98,6 +98,7 @@
                                 <table id="datatable" class="table table-bordered dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                     <thead>
                                     <tr>
+                                        <th>Image</th>
                                         <th>Title</th>
                                         <th>Description</th>
                                         <th>Variant</th>
@@ -148,7 +149,7 @@
                 //data show in table
                 function load_date(title='',priceFrom='',priceTo='',date=''){
                     // let title = $("#title").val();
-                    var table = $('#datatable').DataTable({
+                    $('#datatable').DataTable({
                     processing: true,
                     serverSide: true,
                     ajax: {
@@ -162,6 +163,10 @@
                     },
                     columns: [
 
+                        {
+                            data: 'Image',
+                            name: 'Image'
+                        },
                         {
                             data: 'Title',
                             name: 'Title'
@@ -205,9 +210,9 @@
 
                 });
                 $('#createNewPRoduct').click(function () {
-                    $('#saveBtn').html("create-Blog");
+                    $('#saveBtn').html("create-Product");
                     $('#ProductForm').trigger("reset");
-                    $('#modelHeading').html("Blog Add Form");
+                    $('#modelHeading').html("Product Add Form");
                     $('#ajaxModelProduct').modal('show');
                 });
 
@@ -220,14 +225,10 @@
                         dataType:"json",
                         url:'/admin/product/edit/'+id,
                         success:function(data){
-                            console.log(data);
                             $('#id').val(id);
 
-                                $('#hidden_image_id').val(data.images.thumbnail);
-
-
-
-                            $('#title').val(data.title);
+                            $('#hidden_image_id').val(data.images.thumbnail);
+                            $('#ftitle').val(data.title);
                             $('#sku').val(data.sku);
                             $('#description').val(data.description);
                             $('#price').val(data.price);
@@ -236,12 +237,11 @@
                             $('#variant_one option').filter(':selected').text('color').val(1);
                             $('#variant_two option').filter(':selected').text('size').val(2);
 
-                            // $('#tags option').filter(':selected').text(data.product_variants.variant).val(data.subcategory_id);
 
                             $('#target1').attr('src', flagsUrl +'/'+ data.images.thumbnail).css({"width" :"120 px" , "height" : "80px"});
 
-                            $('#modelHeading').html("Edit Blog");
-                            $('#saveBtn').html("Update-Blog");
+                            $('#modelHeading').html("Edit Product");
+                            $('#saveBtn').html("Update-Product");
                             $('#ajaxModelProduct').modal('show');
                         },
                         error:function (data){
@@ -262,17 +262,18 @@
                             contentType: false,
                             processData: false,
                             success:function (data){
+                                // console.log(data);
                                 if(data.success == true){
-                                    toastr["success"]("Blog added successfully");
+                                    toastr["success"]("Product added successfully");
                                     $('#ProductForm').trigger("reset");
                                     $('#ajaxModelProduct').modal('hide');
-                                    table.draw();
+                                    $('#datatable').DataTable().draw();
 
                                 }else{
-                                    toastr["error"]("Blog already exits");
+                                    toastr["error"]("Product already exits");
                                     $('#ProductForm').trigger("reset");
                                     $('#ajaxModelProduct').modal('hide');
-                                    table.draw();
+                                    $('#datatable').DataTable().draw();
                                 }
                             },
                             error:function(data){
@@ -302,7 +303,7 @@
                                 type: "GET",
                                 dataType:"JSON",
                                 success: function (data) {
-                                    table.draw();
+                                    $('#datatable').DataTable().draw();
                                 },
                             });
                             Swal.fire(

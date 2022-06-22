@@ -14,19 +14,20 @@ use Carbon\Carbon;
 class ProductController extends Controller
 {
     public function product(Request $request){
+        // return $data = Product::with('product_variants','images')->latest()->get();
         if ($request->ajax()){
             if(!empty($request->title)){
                 $data = Product::with('product_variants')->where('title', 'LIKE', "%$request->title%")->get();
             }elseif(!empty($request->priceFrom ) && !empty($request->priceTo )){
-                $data = Product::with('product_variants')
+                $data = Product::with('product_variants','images')
                 ->whereBetween('price', [$request->priceFrom, $request->priceTo])
                 ->get();
             }elseif(!empty($request->date)){
                 $date = Carbon::parse($request->date)->format('Y-m-d');
-                $data = Product::with('product_variants')->whereDate('created_at', $date)->get();
+                $data = Product::with('product_variants','images')->whereDate('created_at', $date)->get();
             }
             else{
-                $data = Product::with('product_variants')->latest()->get();
+                $data = Product::with('product_variants','images')->latest()->get();
             }
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -43,8 +44,11 @@ class ProductController extends Controller
                 })
                 ->editColumn('Variant', function ($data) {
                     $html='';
-                    foreach($data->product_variants as $item){
-                        $html= $html.'<span style="margin-left: 5px" class="badge bg-success">'.$item->variant.'</span>';
+                    foreach($data->product_variants as $pv){
+                        foreach($pv->variant as $item){
+                            $html= $html.'<span style="margin-left: 5px" class="badge bg-success">'.$item.'</span>';
+                        }
+
                     }
                     $price=$data->price;
                     $qty=$data->qty;
@@ -56,10 +60,14 @@ class ProductController extends Controller
                 ->editColumn('Quantity', function ($data) {
                     return $data->qty;
                 })
+                ->editColumn('Image', function ($data) {
+                    $url = asset(product_image() . $data->images->thumbnail);
+                    return '<img src=' . $url . ' border="0" width="80" height="80" class="img-rounded" align="center" />';
+                })
                 ->editColumn('Description', function ($data) {
                     return Str::limit($data->description, 15);
                 })
-                ->rawColumns(['action', 'Title','Variant','Description'])
+                ->rawColumns(['action', 'Title','Variant','Description','Image'])
                 ->make(true);
         }
         return view('admin.pages.product.index');
@@ -92,20 +100,34 @@ class ProductController extends Controller
                ]);
 
                if($productImage){
-                foreach($request->tag as $item){
-                    ProductVariant::updateOrCreate(['product_id' => $product->id,'variant_id'=>$request->variant_one],[
-                        'variant'=>$item,
-                        'variant_id'=>$request->variant_one,
-                        'product_id'=>$product->id,
-                    ]);
-                }
-                foreach($request->tags as $item){
-                    ProductVariant::updateOrCreate(['product_id' => $product->id,'variant_id'=>$request->variant_two],[
-                        'variant'=>$item,
+                $variant_one = ProductVariant::updateOrCreate(['product_id' => $request->id,'variant_id'=>$request->variant_one,],[
+                    'variant'=>$request->tag,
+                    'variant_id'=>$request->variant_one,
+                    'product_id'=>$product->id,
+                ]);
+                if($variant_one){
+                    ProductVariant::updateOrCreate(['product_id' => $request->id,'variant_id'=>$request->variant_two,],[
+                        'variant'=>$request->tags,
                         'variant_id'=>$request->variant_two,
                         'product_id'=>$product->id,
                     ]);
                 }
+
+                //     foreach($request->tag as $item){
+                //         ProductVariant::updateOrCreate(['product_id' => $product->id,'variant_id'=>$request->variant_one],[
+                //             'variant'=>$item,
+                //             'variant_id'=>$request->variant_one,
+                //             'product_id'=>$product->id,
+                //         ]);
+                //     }
+                //     foreach($request->tags as $item){
+                //         ProductVariant::updateOrCreate(['product_id' => $product->id,'variant_id'=>$request->variant_two],[
+                //             'variant'=>$item,
+                //             'variant_id'=>$request->variant_two,
+                //             'product_id'=>$product->id,
+                //         ]);
+                // }
+
                }
             }
         }

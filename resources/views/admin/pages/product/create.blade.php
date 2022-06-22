@@ -16,7 +16,7 @@
                                 <input type="hidden" name="hidden_image" id="hidden_image_id">
                                 <div>
                                     <div class="mb-4">
-                                        <input class="form-control" type="text" name="title" id="title" placeholder="Title">
+                                        <input class="form-control" type="text" name="title" id="ftitle" placeholder="Title">
                                     </div>
                                     <div class="mb-4">
                                         <input class="form-control" type="text"  name="sku" id="sku" placeholder="SKU">
